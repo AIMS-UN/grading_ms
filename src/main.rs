@@ -3,6 +3,7 @@ extern crate rocket;
 
 mod database;
 mod models;
+mod repositories;
 mod routes;
 
 #[rocket::main]
