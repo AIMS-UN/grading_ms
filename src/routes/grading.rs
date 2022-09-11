@@ -1,4 +1,8 @@
-use mongodb::{bson::doc, results::InsertOneResult, Database};
+use mongodb::{
+    bson::doc,
+    results::{InsertOneResult, UpdateResult},
+    Database,
+};
 use rocket::{http::Status, serde::json::Json, State};
 
 use crate::{models::grading::Grading, repositories::grading::GradingRepository};
@@ -30,6 +34,22 @@ pub async fn get_grading(db: &State<Database>, id: String) -> Result<Json<Gradin
     }
 }
 
+#[put("/<id>", data = "<grading>")]
+pub async fn update_grading(
+    db: &State<Database>,
+    id: String,
+    grading: Json<Grading>,
+) -> Result<Json<UpdateResult>, Status> {
+    let repository = GradingRepository::init(db);
+
+    let result = repository.update_grading(&id, grading.into_inner()).await;
+
+    match result {
+        Ok(grading) => Ok(Json(grading)),
+        Err(_) => Err(Status::InternalServerError),
+    }
+}
+
 pub fn get_all() -> Vec<rocket::Route> {
-    routes![create_grading, get_grading]
+    routes![create_grading, get_grading, update_grading]
 }
