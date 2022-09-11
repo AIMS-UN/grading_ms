@@ -3,3 +3,4 @@ Dockerfile
 .dockerignore
 .gitignore
 .git
+aims_grading_db

@@ -1,0 +1,23 @@
+version: "3.8"
+name: "aims"
+services:
+  aims_grading_db:
+    container_name: aims_grading_db
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./aims_grading_db/data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+  aims_grading_ms:
+    container_name: aims_grading_ms
+    image: aims_grading_ms
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=mongodb://root:root@aims_grading_db:27017/
+    links:
+      - aims_grading_db
