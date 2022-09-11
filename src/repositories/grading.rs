@@ -1,7 +1,7 @@
 use crate::models::grading::Grading;
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId},
-    results::{InsertOneResult, UpdateResult},
+    results::{DeleteResult, InsertOneResult, UpdateResult},
     Collection, Database,
 };
 use rocket::State;
@@ -57,6 +57,18 @@ impl GradingRepository {
             .await
             .ok()
             .expect("Failed to update grading");
+        Ok(result)
+    }
+
+    pub async fn delete_grading(&self, id: &str) -> Result<DeleteResult, Error> {
+        let oid = ObjectId::parse_str(id).unwrap();
+        let filter = doc! {"_id": oid};
+        let result = self
+            .collection
+            .delete_one(filter, None)
+            .await
+            .ok()
+            .expect("Failed to delete grading");
         Ok(result)
     }
 }

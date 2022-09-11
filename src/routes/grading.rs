@@ -1,6 +1,6 @@
 use mongodb::{
     bson::doc,
-    results::{InsertOneResult, UpdateResult},
+    results::{DeleteResult, InsertOneResult, UpdateResult},
     Database,
 };
 use rocket::{http::Status, serde::json::Json, State};
@@ -50,6 +50,21 @@ pub async fn update_grading(
     }
 }
 
+#[delete("/<id>")]
+pub async fn delete_grading(
+    db: &State<Database>,
+    id: String,
+) -> Result<Json<DeleteResult>, Status> {
+    let repository = GradingRepository::init(db);
+
+    let result = repository.delete_grading(&id).await;
+
+    match result {
+        Ok(grading) => Ok(Json(grading)),
+        Err(_) => Err(Status::InternalServerError),
+    }
+}
+
 pub fn get_all() -> Vec<rocket::Route> {
-    routes![create_grading, get_grading, update_grading]
+    routes![create_grading, get_grading, update_grading, delete_grading]
 }
