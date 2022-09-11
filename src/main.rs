@@ -2,6 +2,7 @@
 extern crate rocket;
 
 mod database;
+mod models;
 mod routes;
 
 #[rocket::main]
