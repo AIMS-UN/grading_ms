@@ -18,6 +18,18 @@ pub async fn create_grading(
     }
 }
 
+#[get("/<id>")]
+pub async fn get_grading(db: &State<Database>, id: String) -> Result<Json<Grading>, Status> {
+    let repository = GradingRepository::init(db);
+
+    let result = repository.get_grading(&id).await;
+
+    match result {
+        Ok(grading) => Ok(Json(grading)),
+        Err(_) => Err(Status::InternalServerError),
+    }
+}
+
 pub fn get_all() -> Vec<rocket::Route> {
-    routes![create_grading]
+    routes![create_grading, get_grading]
 }

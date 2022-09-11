@@ -1,5 +1,9 @@
 use crate::models::grading::Grading;
-use mongodb::{bson::extjson::de::Error, results::InsertOneResult, Collection, Database};
+use mongodb::{
+    bson::{doc, extjson::de::Error, oid::ObjectId},
+    results::InsertOneResult,
+    Collection, Database,
+};
 use rocket::State;
 
 pub struct GradingRepository {
@@ -20,5 +24,17 @@ impl GradingRepository {
             .ok()
             .expect("Failed to insert grading");
         Ok(result)
+    }
+
+    pub async fn get_grading(&self, id: &str) -> Result<Grading, Error> {
+        let oid = ObjectId::parse_str(id).unwrap();
+        let filter = doc! {"_id": oid};
+        let result = self
+            .collection
+            .find_one(filter, None)
+            .await
+            .ok()
+            .expect("Failed to get grading");
+        Ok(result.unwrap())
     }
 }
