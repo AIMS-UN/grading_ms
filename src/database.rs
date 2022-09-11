@@ -7,7 +7,7 @@ pub async fn get_db() -> Database {
         .await
         .expect("Failed to initialize client.");
 
-    let db = client.database("hello_db");
+    let db = client.database("gradings_db");
 
     db.run_command(doc! {"ping": 1}, None)
         .await
