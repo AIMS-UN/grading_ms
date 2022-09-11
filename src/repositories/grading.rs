@@ -4,7 +4,7 @@ use mongodb::{
     results::{DeleteResult, InsertOneResult, UpdateResult},
     Collection, Database,
 };
-use rocket::State;
+use rocket::{futures::StreamExt, State};
 
 pub struct GradingRepository {
     collection: Collection<Grading>,
@@ -70,5 +70,20 @@ impl GradingRepository {
             .ok()
             .expect("Failed to delete grading");
         Ok(result)
+    }
+
+    pub async fn get_all_gradings(&self) -> Result<Vec<Grading>, Error> {
+        let cursor = self
+            .collection
+            .find(None, None)
+            .await
+            .ok()
+            .expect("Failed to get gradings");
+
+        let gradings = cursor
+            .map(|doc| doc.unwrap())
+            .collect::<Vec<Grading>>()
+            .await;
+        Ok(gradings)
     }
 }
