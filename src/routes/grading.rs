@@ -1,25 +1,23 @@
-use mongodb::{bson::doc, Database};
-use rocket::{http::Status, serde::json::Json};
+use mongodb::{bson::doc, results::InsertOneResult, Database};
+use rocket::{http::Status, serde::json::Json, State};
 
-#[get("/")]
-pub fn hello() -> Result<Json<String>, Status> {
-    Ok(Json("Hello from rust an rocket".to_string()))
-}
+use crate::{models::grading::Grading, repositories::grading::GradingRepository};
 
-#[get("/<name>")]
-pub async fn hello_name(
-    db: &rocket::State<Database>,
-    name: String,
-) -> Result<Json<String>, Status> {
-    let collection = db.collection("hello");
-    let doc = doc! { "name": name.clone() };
-    let result = collection.insert_one(doc, None).await;
+#[post("/", data = "<new_grading>")]
+pub async fn create_grading(
+    db: &State<Database>,
+    new_grading: Json<Grading>,
+) -> Result<Json<InsertOneResult>, Status> {
+    let repository = GradingRepository::init(db);
+
+    let result = repository.create_grading(new_grading.into_inner()).await;
+
     match result {
-        Ok(_) => Ok(Json(format!("Hello {}", name))),
+        Ok(grading) => Ok(Json(grading)),
         Err(_) => Err(Status::InternalServerError),
     }
 }
 
 pub fn get_all() -> Vec<rocket::Route> {
-    routes![hello, hello_name]
+    routes![create_grading]
 }
