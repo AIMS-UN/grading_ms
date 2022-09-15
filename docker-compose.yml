@@ -11,6 +11,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - aims_grading_network
   aims_grading_ms:
     container_name: aims_grading_ms
     image: aims_grading_ms
@@ -21,3 +23,9 @@ services:
       - MONGO_URI=mongodb://root:root@aims_grading_db:27017/
     links:
       - aims_grading_db
+    networks:
+      - aims_grading_network
+
+networks:
+  aims_grading_network:
+    driver: bridge
