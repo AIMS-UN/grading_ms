@@ -5,7 +5,7 @@ services:
     container_name: aims_grading_db
     image: mongo
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - ./aims_grading_db/data:/data/db
     environment:
