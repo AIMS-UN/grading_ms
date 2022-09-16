@@ -21,7 +21,7 @@ services:
       - "8000:8000"
     environment:
       - MONGO_URI=mongodb://root:root@aims_grading_db:27017/
-    links:
+    depends_on:
       - aims_grading_db
     networks:
       - aims_grading_network
