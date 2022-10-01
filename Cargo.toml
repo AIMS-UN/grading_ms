@@ -3,9 +3,15 @@ name = "aims_grading_ms"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "aims_grading_ms"
+path = "src/main.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-mongodb = { version = "2.3.0", default-features = false, features = ["async-std-runtime"] }
+mongodb = { version = "2.3.0", default-features = false, features = [
+    "async-std-runtime",
+] }
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde = "1.0.144"

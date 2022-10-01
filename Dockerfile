@@ -1,14 +1,23 @@
-FROM ekidd/rust-musl-builder AS builder
+FROM rust AS builder
+WORKDIR /app
 
-ADD . ./
-RUN sudo chown -R rust:rust /home/rust/src
+COPY ./Cargo.toml ./Cargo.toml
+COPY dummy.rs .
+RUN sed -i 's#src/main.rs#dummy.rs#' ./Cargo.toml
 RUN cargo build --release
-RUN strip /home/rust/src/target/x86_64-unknown-linux-musl/release/aims_grading_ms
+RUN sed -i 's#dummy.rs#src/main.rs#' ./Cargo.toml
 
-FROM debian:buster-slim as runner
-COPY --from=builder /home/rust/src/target/x86_64-unknown-linux-musl/release/aims_grading_ms /aims_grading_ms
+COPY ./src ./src
+RUN rm -rf ./target/release/deps/*
+RUN cargo build --release
+
+FROM debian:bullseye-slim AS runtime
+WORKDIR /app
+COPY --from=builder /app/target/release/aims_grading_ms .
 
 ENV ROCKET_ADDRESS=0.0.0.0
 ENV ROCKET_PORT=8000
+
 EXPOSE 8000
-ENTRYPOINT [ "/aims_grading_ms" ]
+CMD ["./aims_grading_ms"]
+
