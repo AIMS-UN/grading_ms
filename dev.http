@@ -1,0 +1,73 @@
+@base_url=http://localhost:8000/api/v1
+
+@student_id=633944156e7163323f151604
+@group_id=633944156e7163323f151604
+@subject_id=633944156e7163323f151604
+
+@grade_id=633ad337e22c4c9a82108623
+@category_id=633ad292e22c4c9a82108622
+
+### Create grade category
+POST {{base_url}}/categories HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "test",
+    "weight": 1.0,
+    "group_id": "{{group_id}}",
+    "subject_id": "{{subject_id}}"
+}
+
+### Get all grade categories
+GET {{base_url}}/categories HTTP/1.1
+
+### Get grade category
+GET {{base_url}}/categories/{{category_id}} HTTP/1.1
+
+### Update grade category
+PUT {{base_url}}/categories/{{category_id}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "test",
+    "weight": 2.0,
+    "group_id": "{{group_id}}",
+    "subject_id": "{{subject_id}}"
+}
+
+### Delete grade category
+DELETE {{base_url}}/categories/{{category_id}} HTTP/1.1
+
+
+### Create grade
+POST {{base_url}}/grades HTTP/1.1
+Content-Type: application/json
+
+{
+    "category_id": "{{category_id}}",
+    "student_id": "{{student_id}}",
+    "score": 4.0
+}
+
+### Get all grades
+GET {{base_url}}/grades HTTP/1.1
+
+### Get grade
+GET {{base_url}}/grades/{{grade_id}} HTTP/1.1
+
+### Update grade
+PUT {{base_url}}/grades/{{grade_id}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "category_id": "{{category_id}}",
+    "student_id": "{{student_id}}",
+    "score": 4.5
+}
+
+### Delete grade
+DELETE {{base_url}}/grades/{{grade_id}} HTTP/1.1
+
+
+### Get all grades with filters
+GET {{base_url}}/grades?student_id={{student_id}}&category_id={{category_id}} HTTP/1.1
