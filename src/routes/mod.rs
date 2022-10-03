@@ -1,1 +1,2 @@
-pub mod grading;
+pub mod categories;
+pub mod grades;
