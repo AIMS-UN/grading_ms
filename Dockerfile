@@ -8,7 +8,6 @@ RUN cargo build --release
 RUN sed -i 's#dummy.rs#src/main.rs#' ./Cargo.toml
 
 COPY ./src ./src
-RUN rm -rf ./target/release/deps/*
 RUN cargo build --release
 
 FROM debian:bullseye-slim AS runtime

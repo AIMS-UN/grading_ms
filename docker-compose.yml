@@ -1,31 +1,31 @@
 version: "3.8"
-name: "aims"
+name: aims
+
 services:
-  aims_grading_db:
-    container_name: aims_grading_db
-    image: mongo
+  grading_db:
+    image: mongo:latest
+    container_name: grading_db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=aims
+      - MONGO_INITDB_ROOT_PASSWORD=aims
     ports:
       - "27018:27017"
     volumes:
-      - ./aims_grading_db/data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-    networks:
-      - aims_grading_network
-  aims_grading_ms:
-    container_name: aims_grading_ms
-    image: aims_grading_ms
+      - grading:/data/db
+
+  grading_ms:
     build: .
+    image: aims_grading_ms
+    container_name: grading_ms
+    depends_on:
+      - grading_db
+    links:
+      - grading_db
+    environment:
+      - MONGO_URI=mongodb://aims:aims@grading_db:27017
+      - MONGO_DB=aims
     ports:
       - "8000:8000"
-    environment:
-      - MONGO_URI=mongodb://root:root@aims_grading_db:27017/
-    depends_on:
-      - aims_grading_db
-    networks:
-      - aims_grading_network
 
-networks:
-  aims_grading_network:
-    driver: bridge
+volumes:
+  grading:
