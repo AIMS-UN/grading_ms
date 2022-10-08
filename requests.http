@@ -1,0 +1,110 @@
+@base_url=http://localhost:8000/api/v1
+
+
+### --------------------- CATEGORIES --------------------- ###
+
+@category_id={{new_category.response.body.data._id.$oid}}
+@group_id={{new_category.response.body.data.group_id}}
+@subject_id={{new_category.response.body.data.subject_id}}
+
+###
+# @name new_category
+POST {{base_url}}/categories HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Final Exam",
+    "group_id": "{{$guid}}",
+    "subject_id": "{{$guid}}",
+    "weight": {{$randomInt 0 100}}
+}
+
+###
+# @name get_categories
+GET {{base_url}}/categories HTTP/1.1
+
+###
+# @name get_category
+GET {{base_url}}/categories/{{category_id}} HTTP/1.1
+
+###
+# @name get_categories_by_group
+GET {{base_url}}/categories?group_id={{group_id}} HTTP/1.1
+
+###
+# @name get_categories_by_subject
+GET {{base_url}}/categories?subject_id={{subject_id}} HTTP/1.1
+
+###
+# @name get_categories_by_group_and_subject
+GET {{base_url}}/categories?group_id={{group_id}}&subject_id={{subject_id}} HTTP/1.1
+
+###
+# @name update_category
+PUT {{base_url}}/categories/{{category_id}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Updated Category",
+    "weight": 20,
+    "group_id": "{{group_id}}",
+    "subject_id": "{{subject_id}}"
+}
+
+###
+# @name delete_category
+DELETE {{base_url}}/categories/{{category_id}} HTTP/1.1
+
+
+### --------------------- GRADES --------------------- ###
+
+@grade_id={{new_grade.response.body.data._id.$oid}}
+@student_id={{new_grade.response.body.data.student_id}}
+
+###
+# @name new_grade
+POST {{base_url}}/grades HTTP/1.1
+Content-Type: application/json
+
+{
+    "category_id": "{{category_id}}",
+    "student_id": "{{$guid}}",
+    "score": {{$randomInt 0 5}}
+}
+
+###
+# @name get_grades
+GET {{base_url}}/grades HTTP/1.1
+
+###
+# @name get_grade
+GET {{base_url}}/grades/{{grade_id}} HTTP/1.1
+
+###
+# @name get_grades_by_category
+GET {{base_url}}/grades?category_id={{category_id}} HTTP/1.1
+
+###
+# @name get_grades_by_student
+GET {{base_url}}/grades?student_id={{student_id}} HTTP/1.1
+
+###
+# @name get_grades_by_category_and_student
+GET {{base_url}}/grades?category_id={{category_id}}&student_id={{student_id}} HTTP/1.1
+
+###
+# @name update_grade
+PUT {{base_url}}/grades/{{grade_id}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "category_id": "{{category_id}}",
+    "student_id": "{{student_id}}",
+    "score": 4.8
+}
+
+###
+# @name delete_grade
+DELETE {{base_url}}/grades/{{grade_id}} HTTP/1.1
+
+###

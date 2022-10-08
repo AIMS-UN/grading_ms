@@ -54,9 +54,21 @@ pub async fn get_category(db: &State<Database>, id: String) -> ApiResponse {
     }
 }
 
-#[get("/")]
-pub async fn get_categories(db: &State<Database>) -> ApiResponse {
-    let result = get_category_repo(db).get_all().await;
+#[get("/?<subject_id>&<group_id>")]
+pub async fn get_categories(
+    db: &State<Database>,
+    subject_id: Option<String>,
+    group_id: Option<String>,
+) -> ApiResponse {
+    let filter = match (subject_id, group_id) {
+        (Some(subject_id), Some(group_id)) => {
+            Some(doc! {"subject_id": subject_id, "group_id": group_id})
+        }
+        (Some(subject_id), None) => Some(doc! {"subject_id": subject_id}),
+        (None, Some(group_id)) => Some(doc! {"group_id": group_id}),
+        (None, None) => None,
+    };
+    let result = get_category_repo(db).get_all(filter).await;
 
     match result {
         Ok(categories) => ApiResponse {
@@ -104,9 +116,9 @@ pub async fn delete_category(db: &State<Database>, id: String) -> ApiResponse {
 
     match result {
         Ok(result) => match result {
-            Some(_) => ApiResponse {
+            Some(category) => ApiResponse {
                 status: Status::Gone,
-                json: Some(json!({ "data": "Category deleted" })),
+                json: Some(json!({ "data": category })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
