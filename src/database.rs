@@ -1,5 +1,5 @@
 use mongodb::{
-    bson::{doc, oid::ObjectId},
+    bson::{doc, oid::ObjectId, Document},
     error::Error,
     Client, Collection, Database,
 };
@@ -68,17 +68,19 @@ where
         }
     }
 
-    pub async fn get_all(&self) -> Result<Vec<T>, Error> {
-        let cursor = self.collection.find(None, None).await;
+    pub async fn get_all(&self, filter: Option<Document>) -> Result<Vec<T>, Error> {
+        let mut cursor = self.collection.find(filter, None).await?;
 
-        match cursor {
-            Ok(cursor) => {
-                let items = cursor.map(|item| item.unwrap()).collect::<Vec<T>>().await;
+        let mut items = Vec::new();
 
-                Ok(items)
+        while let Some(result) = cursor.next().await {
+            match result {
+                Ok(item) => items.push(item),
+                Err(e) => return Err(e),
             }
-            Err(e) => Err(e),
         }
+
+        Ok(items)
     }
 
     pub async fn update(&self, id: &str, item: T) -> Result<Option<T>, Error> {

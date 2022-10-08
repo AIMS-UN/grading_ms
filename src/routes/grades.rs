@@ -52,9 +52,13 @@ pub async fn get_grade(db: &State<Database>, id: String) -> ApiResponse {
     }
 }
 
-#[get("/")]
-pub async fn get_grades(db: &State<Database>) -> ApiResponse {
-    let result = get_grade_repo(db).get_all().await;
+#[get("/?<student_id>")]
+pub async fn get_grades(db: &State<Database>, student_id: Option<String>) -> ApiResponse {
+    let filter = match student_id {
+        Some(student_id) => Some(doc! {"student_id": student_id}),
+        None => None,
+    };
+    let result = get_grade_repo(db).get_all(filter).await;
 
     match result {
         Ok(grades) => ApiResponse {
@@ -103,7 +107,7 @@ pub async fn delete_grade(db: &State<Database>, id: String) -> ApiResponse {
     match result {
         Ok(result) => match result {
             Some(grade) => ApiResponse {
-                status: Status::Ok,
+                status: Status::Gone,
                 json: Some(json!({ "data": grade })),
             },
             None => ApiResponse {
