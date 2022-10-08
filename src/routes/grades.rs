@@ -52,11 +52,19 @@ pub async fn get_grade(db: &State<Database>, id: String) -> ApiResponse {
     }
 }
 
-#[get("/?<student_id>")]
-pub async fn get_grades(db: &State<Database>, student_id: Option<String>) -> ApiResponse {
-    let filter = match student_id {
-        Some(student_id) => Some(doc! {"student_id": student_id}),
-        None => None,
+#[get("/?<student_id>&<category_id>")]
+pub async fn get_grades(
+    db: &State<Database>,
+    student_id: Option<String>,
+    category_id: Option<String>,
+) -> ApiResponse {
+    let filter = match (student_id, category_id) {
+        (Some(student_id), Some(category_id)) => {
+            Some(doc! { "student_id": student_id, "category_id": category_id })
+        }
+        (Some(student_id), None) => Some(doc! { "student_id": student_id }),
+        (None, Some(category_id)) => Some(doc! { "category_id": category_id }),
+        (None, None) => None,
     };
     let result = get_grade_repo(db).get_all(filter).await;
 
