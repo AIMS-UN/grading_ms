@@ -131,3 +131,18 @@ pub async fn delete_category(db: &State<Database>, id: String) -> ApiResponse {
         },
     }
 }
+
+pub fn stage() -> rocket::fairing::AdHoc {
+    rocket::fairing::AdHoc::on_ignite("Categories", |rocket| async {
+        rocket.mount(
+            "/api/v1/categories",
+            routes![
+                create_category,
+                get_category,
+                get_categories,
+                update_category,
+                delete_category
+            ],
+        )
+    })
+}

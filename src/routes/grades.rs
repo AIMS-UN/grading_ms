@@ -129,3 +129,18 @@ pub async fn delete_grade(db: &State<Database>, id: String) -> ApiResponse {
         },
     }
 }
+
+pub fn stage() -> rocket::fairing::AdHoc {
+    rocket::fairing::AdHoc::on_ignite("Grades", |rocket| async {
+        rocket.mount(
+            "/api/v1/grades",
+            routes![
+                create_grade,
+                get_grade,
+                get_grades,
+                update_grade,
+                delete_grade
+            ],
+        )
+    })
+}
