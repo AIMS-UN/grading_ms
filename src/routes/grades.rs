@@ -1,6 +1,8 @@
-use crate::database::Repository;
-use crate::helpers::response::ApiResponse;
-use crate::models::grade::Grade;
+use crate::{
+    database::Repository,
+    helpers::response::ApiResponse,
+    models::{category::Category, grade::Grade},
+};
 
 use mongodb::{bson::doc, Collection, Database};
 use rocket::{
@@ -14,14 +16,35 @@ fn get_grade_repo(db: &State<Database>) -> Repository<Grade> {
     Repository::init(collection)
 }
 
+fn get_category_repo(db: &State<Database>) -> Repository<Category> {
+    let collection: Collection<Category> = db.collection("categories");
+    Repository::init(collection)
+}
+
 #[post("/", data = "<new_grade>")]
 pub async fn create_grade(db: &State<Database>, new_grade: Json<Grade>) -> ApiResponse {
-    let result = get_grade_repo(db).create(new_grade.into_inner()).await;
+    let result = get_category_repo(db).get(&new_grade.category_id).await;
 
     match result {
-        Ok(grade) => ApiResponse {
-            status: Status::Created,
-            json: Some(json!({ "data": grade })),
+        Ok(result) => match result {
+            Some(_) => {
+                let result = get_grade_repo(db).create(new_grade.into_inner()).await;
+
+                match result {
+                    Ok(grade) => ApiResponse {
+                        status: Status::Created,
+                        json: Some(json!({ "data": grade })),
+                    },
+                    Err(e) => ApiResponse {
+                        status: Status::InternalServerError,
+                        json: Some(json!({ "error": e.to_string() })),
+                    },
+                }
+            }
+            None => ApiResponse {
+                status: Status::NotFound,
+                json: Some(json!({ "error": "Category not found" })),
+            },
         },
         Err(e) => ApiResponse {
             status: Status::InternalServerError,
