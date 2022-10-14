@@ -1,7 +1,37 @@
 use rocket::serde::json::serde_json;
 
-pub fn object_id_serializer(_json: &serde_json::Value) -> serde_json::Value {
-    todo!("Implement object_id_serializer");
+pub fn object_id_serializer(json: &serde_json::Value) -> serde_json::Value {
+    match json {
+        serde_json::Value::Object(obj) => {
+            if !obj.contains_key("_id") {
+                return json.clone();
+            }
+
+            let id = obj
+                .get("_id")
+                .unwrap()
+                .get("$oid")
+                .unwrap()
+                .as_str()
+                .unwrap();
+
+            let mut new_obj = obj.clone();
+            new_obj.insert("id".to_string(), serde_json::Value::String(id.to_string()));
+            new_obj.remove("_id");
+
+            serde_json::Value::Object(new_obj)
+        }
+        serde_json::Value::Array(arr) => {
+            let mut new_arr = Vec::new();
+
+            for item in arr {
+                new_arr.push(object_id_serializer(item));
+            }
+
+            serde_json::Value::Array(new_arr)
+        }
+        _ => json.clone(),
+    }
 }
 
 #[cfg(test)]
