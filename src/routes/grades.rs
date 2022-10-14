@@ -1,14 +1,14 @@
-use crate::{
-    database::Repository,
-    helpers::response::ApiResponse,
-    models::{category::Category, grade::Grade},
-};
-
 use mongodb::{bson::doc, Collection, Database};
 use rocket::{
     http::Status,
     serde::json::{serde_json::json, Json},
     State,
+};
+
+use crate::{
+    database::Repository,
+    helpers::{response::ApiResponse, serializer::object_id_serializer},
+    models::{category::Category, grade::Grade},
 };
 
 fn get_grade_repo(db: &State<Database>) -> Repository<Grade> {
@@ -33,7 +33,7 @@ pub async fn create_grade(db: &State<Database>, new_grade: Json<Grade>) -> ApiRe
                 match result {
                     Ok(grade) => ApiResponse {
                         status: Status::Created,
-                        json: Some(json!({ "data": grade })),
+                        json: Some(json!({ "data": object_id_serializer(&json!(grade)) })),
                     },
                     Err(e) => ApiResponse {
                         status: Status::InternalServerError,
@@ -61,7 +61,7 @@ pub async fn get_grade(db: &State<Database>, id: String) -> ApiResponse {
         Ok(result) => match result {
             Some(grade) => ApiResponse {
                 status: Status::Ok,
-                json: Some(json!({ "data": grade })),
+                json: Some(json!({ "data": object_id_serializer(&json!(grade)) })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
@@ -94,7 +94,7 @@ pub async fn get_grades(
     match result {
         Ok(grades) => ApiResponse {
             status: Status::Ok,
-            json: Some(json!({ "data": grades })),
+            json: Some(json!({ "data": object_id_serializer(&json!(grades)) })),
         },
         Err(e) => ApiResponse {
             status: Status::InternalServerError,
@@ -117,7 +117,7 @@ pub async fn update_grade(
         Ok(result) => match result {
             Some(grade) => ApiResponse {
                 status: Status::Ok,
-                json: Some(json!({ "data": grade })),
+                json: Some(json!({ "data": object_id_serializer(&json!(grade)) })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
@@ -139,7 +139,7 @@ pub async fn delete_grade(db: &State<Database>, id: String) -> ApiResponse {
         Ok(result) => match result {
             Some(grade) => ApiResponse {
                 status: Status::Gone,
-                json: Some(json!({ "data": grade })),
+                json: Some(json!({ "data": object_id_serializer(&json!(grade)) })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
