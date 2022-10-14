@@ -3,7 +3,7 @@
 
 ### --------------------- CATEGORIES --------------------- ###
 
-@category_id={{new_category.response.body.data._id.$oid}}
+@category_id={{new_category.response.body.data.id}}
 @group_id={{new_category.response.body.data.group_id}}
 @subject_id={{new_category.response.body.data.subject_id}}
 
@@ -58,7 +58,7 @@ DELETE {{base_url}}/categories/{{category_id}} HTTP/1.1
 
 ### --------------------- GRADES --------------------- ###
 
-@grade_id={{new_grade.response.body.data._id.$oid}}
+@grade_id={{new_grade.response.body.data.id}}
 @student_id={{new_grade.response.body.data.student_id}}
 
 ###

@@ -1,12 +1,14 @@
-use crate::database::Repository;
-use crate::helpers::response::ApiResponse;
-use crate::models::category::Category;
-
 use mongodb::{bson::doc, Collection, Database};
 use rocket::{
     http::Status,
     serde::json::{serde_json::json, Json},
     State,
+};
+
+use crate::{
+    database::Repository,
+    helpers::{response::ApiResponse, serializer::object_id_serializer},
+    models::category::Category,
 };
 
 fn get_category_repo(db: &State<Database>) -> Repository<Category> {
@@ -23,7 +25,7 @@ pub async fn create_category(db: &State<Database>, new_category: Json<Category>)
     match result {
         Ok(category) => ApiResponse {
             status: Status::Created,
-            json: Some(json!({ "data": category })),
+            json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
         },
         Err(e) => ApiResponse {
             status: Status::InternalServerError,
@@ -40,7 +42,7 @@ pub async fn get_category(db: &State<Database>, id: String) -> ApiResponse {
         Ok(result) => match result {
             Some(category) => ApiResponse {
                 status: Status::Ok,
-                json: Some(json!({ "data": category })),
+                json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
@@ -73,7 +75,7 @@ pub async fn get_categories(
     match result {
         Ok(categories) => ApiResponse {
             status: Status::Ok,
-            json: Some(json!({ "data": categories })),
+            json: Some(json!({ "data": object_id_serializer(&json!(categories)) })),
         },
         Err(e) => ApiResponse {
             status: Status::InternalServerError,
@@ -96,7 +98,7 @@ pub async fn update_category(
         Ok(result) => match result {
             Some(category) => ApiResponse {
                 status: Status::Ok,
-                json: Some(json!({ "data": category })),
+                json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
@@ -118,7 +120,7 @@ pub async fn delete_category(db: &State<Database>, id: String) -> ApiResponse {
         Ok(result) => match result {
             Some(category) => ApiResponse {
                 status: Status::Gone,
-                json: Some(json!({ "data": category })),
+                json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
             },
             None => ApiResponse {
                 status: Status::NotFound,
