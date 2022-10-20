@@ -5,7 +5,7 @@
 
 @category_id={{new_category.response.body.data.id}}
 @group_id={{new_category.response.body.data.group_id}}
-@subject_id={{new_category.response.body.data.subject_id}}
+@subject_code={{new_category.response.body.data.subject_code}}
 
 ###
 # @name new_category
@@ -15,7 +15,7 @@ Content-Type: application/json
 {
     "name": "Final Exam",
     "group_id": "{{$guid}}",
-    "subject_id": "{{$guid}}",
+    "subject_code": "{{$randomInt 100000 999999}}",
     "weight": {{$randomInt 0 100}}
 }
 
@@ -33,11 +33,11 @@ GET {{base_url}}/categories?group_id={{group_id}} HTTP/1.1
 
 ###
 # @name get_categories_by_subject
-GET {{base_url}}/categories?subject_id={{subject_id}} HTTP/1.1
+GET {{base_url}}/categories?subject_code={{subject_code}} HTTP/1.1
 
 ###
 # @name get_categories_by_group_and_subject
-GET {{base_url}}/categories?group_id={{group_id}}&subject_id={{subject_id}} HTTP/1.1
+GET {{base_url}}/categories?group_id={{group_id}}&subject_code={{subject_code}} HTTP/1.1
 
 ###
 # @name update_category
@@ -48,7 +48,7 @@ Content-Type: application/json
     "name": "Updated Category",
     "weight": 20,
     "group_id": "{{group_id}}",
-    "subject_id": "{{subject_id}}"
+    "subject_code": "{{subject_code}}"
 }
 
 ###

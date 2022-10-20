@@ -56,17 +56,17 @@ pub async fn get_category(db: &State<Database>, id: String) -> ApiResponse {
     }
 }
 
-#[get("/?<subject_id>&<group_id>")]
+#[get("/?<subject_code>&<group_id>")]
 pub async fn get_categories(
     db: &State<Database>,
-    subject_id: Option<String>,
+    subject_code: Option<String>,
     group_id: Option<String>,
 ) -> ApiResponse {
-    let filter = match (subject_id, group_id) {
-        (Some(subject_id), Some(group_id)) => {
-            Some(doc! {"subject_id": subject_id, "group_id": group_id})
+    let filter = match (subject_code, group_id) {
+        (Some(subject_code), Some(group_id)) => {
+            Some(doc! {"subject_code": subject_code, "group_id": group_id})
         }
-        (Some(subject_id), None) => Some(doc! {"subject_id": subject_id}),
+        (Some(subject_code), None) => Some(doc! {"subject_code": subject_code}),
         (None, Some(group_id)) => Some(doc! {"group_id": group_id}),
         (None, None) => None,
     };

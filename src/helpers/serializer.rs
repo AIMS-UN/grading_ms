@@ -81,7 +81,7 @@ mod tests {
             id: Some(ObjectId::parse_str("5f9f1b0b0b9b9b0b0b0b0b0b").unwrap()),
             name: "test".to_string(),
             weight: 4.0,
-            subject_id: "5f9f1b0b0b9b9b0b0b0b0b0b".to_string(),
+            subject_code: "1000003-B".to_string(),
             group_id: "ef9f1b0b0b9b9b0b0b0b0b0b".to_string(),
         });
 
@@ -89,7 +89,7 @@ mod tests {
             "id": "5f9f1b0b0b9b9b0b0b0b0b0b",
             "name": "test",
             "weight": 4.0,
-            "subject_id": "5f9f1b0b0b9b9b0b0b0b0b0b",
+            "subject_code": "1000003-B",
             "group_id": "ef9f1b0b0b9b9b0b0b0b0b0b",
         });
 
