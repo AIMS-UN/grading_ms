@@ -8,7 +8,7 @@ mod routes;
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    let db = database::get_db().await;
+    let db = database::get_db().await.unwrap();
     let _rocket = rocket::build()
         .manage(db)
         .attach(routes::categories::stage())

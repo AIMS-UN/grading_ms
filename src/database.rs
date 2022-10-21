@@ -7,20 +7,16 @@ use rocket::futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::env;
 
-pub async fn get_db() -> Database {
+pub async fn get_db() -> Result<Database, Error> {
     let uri = env::var("MONGO_URI").expect("MONGO_URI must be set");
-    let client = Client::with_uri_str(&uri)
-        .await
-        .expect("Failed to initialize client.");
+    let client = Client::with_uri_str(&uri).await?;
 
-    let db_name = env::var("MONGO_DB").expect("MONGO_DB must be set");
+    let db_name = env::var("MONGO_DB").unwrap_or_else(|_| "gradings".to_string());
     let db = client.database(&db_name);
 
-    db.run_command(doc! {"ping": 1}, None)
-        .await
-        .expect("Failed to ping database.");
+    db.run_command(doc! {"ping": 1}, None).await?;
 
-    db
+    Ok(db)
 }
 
 pub struct Repository<T>
