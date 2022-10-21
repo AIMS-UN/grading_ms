@@ -42,30 +42,19 @@ where
         let oid = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": oid};
 
-        let result = self.collection.find_one(filter, None).await;
+        let result = self.collection.find_one(filter, None).await?;
 
-        match result {
-            Ok(result) => Ok(result),
-            Err(e) => Err(e),
-        }
+        Ok(result)
     }
 
     pub async fn create(&self, item: T) -> Result<T, Error> {
-        let result = self.collection.insert_one(item, None).await;
+        let result = self.collection.insert_one(item, None).await?;
 
-        match result {
-            Ok(result) => {
-                let oid = result.inserted_id.as_object_id().unwrap();
-                let filter = doc! {"_id": oid};
-                let result = self.collection.find_one(filter, None).await;
+        let oid = result.inserted_id.as_object_id().unwrap();
+        let filter = doc! {"_id": oid};
+        let result = self.collection.find_one(filter, None).await?;
 
-                match result {
-                    Ok(result) => Ok(result.unwrap()),
-                    Err(e) => Err(e),
-                }
-            }
-            Err(e) => Err(e),
-        }
+        Ok(result.unwrap())
     }
 
     pub async fn get_all(&self, filter: Option<Document>) -> Result<Vec<T>, Error> {
@@ -73,11 +62,8 @@ where
 
         let mut items = Vec::new();
 
-        while let Some(result) = cursor.next().await {
-            match result {
-                Ok(item) => items.push(item),
-                Err(e) => return Err(e),
-            }
+        while let Some(item) = cursor.next().await {
+            items.push(item?);
         }
 
         Ok(items)
@@ -87,35 +73,24 @@ where
         let oid = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": oid};
 
-        let result = self.collection.replace_one(filter, item, None).await;
+        let result = self.collection.replace_one(filter, item, None).await?;
 
-        match result {
-            Ok(result) => {
-                if result.modified_count == 0 {
-                    return Ok(None);
-                }
-
-                let filter = doc! {"_id": oid};
-                let result = self.collection.find_one(filter, None).await;
-
-                match result {
-                    Ok(result) => Ok(result),
-                    Err(e) => Err(e),
-                }
-            }
-            Err(e) => Err(e),
+        if result.modified_count == 0 {
+            return Ok(None);
         }
+
+        let filter = doc! {"_id": oid};
+        let result = self.collection.find_one(filter, None).await?;
+
+        Ok(result)
     }
 
     pub async fn delete(&self, id: &str) -> Result<Option<T>, Error> {
         let oid = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": oid};
 
-        let result = self.collection.find_one_and_delete(filter, None).await;
+        let result = self.collection.find_one_and_delete(filter, None).await?;
 
-        match result {
-            Ok(result) => Ok(result),
-            Err(e) => Err(e),
-        }
+        Ok(result)
     }
 }
