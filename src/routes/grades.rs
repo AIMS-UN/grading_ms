@@ -81,15 +81,15 @@ pub async fn get_grades(
     student_id: Option<String>,
     category_id: Option<String>,
 ) -> ApiResponse {
-    let filter = match (student_id, category_id) {
-        (Some(student_id), Some(category_id)) => {
-            Some(doc! { "student_id": student_id, "category_id": category_id })
-        }
-        (Some(student_id), None) => Some(doc! { "student_id": student_id }),
-        (None, Some(category_id)) => Some(doc! { "category_id": category_id }),
-        (None, None) => None,
-    };
-    let result = get_grade_repo(db).get_all(filter).await;
+    let mut filter = doc! {};
+    if let Some(student_id) = student_id {
+        filter.insert("student_id", student_id);
+    }
+    if let Some(category_id) = category_id {
+        filter.insert("category_id", category_id);
+    }
+
+    let result = get_grade_repo(db).get_all(Some(filter)).await;
 
     match result {
         Ok(grades) => ApiResponse {

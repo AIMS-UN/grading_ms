@@ -62,15 +62,15 @@ pub async fn get_categories(
     subject_code: Option<String>,
     group_id: Option<String>,
 ) -> ApiResponse {
-    let filter = match (subject_code, group_id) {
-        (Some(subject_code), Some(group_id)) => {
-            Some(doc! {"subject_code": subject_code, "group_id": group_id})
-        }
-        (Some(subject_code), None) => Some(doc! {"subject_code": subject_code}),
-        (None, Some(group_id)) => Some(doc! {"group_id": group_id}),
-        (None, None) => None,
-    };
-    let result = get_category_repo(db).get_all(filter).await;
+    let mut filter = doc! {};
+    if let Some(subject_code) = subject_code {
+        filter.insert("subject_code", subject_code);
+    }
+    if let Some(group_id) = group_id {
+        filter.insert("group_id", group_id);
+    }
+
+    let result = get_category_repo(db).get_all(Some(filter)).await;
 
     match result {
         Ok(categories) => ApiResponse {
