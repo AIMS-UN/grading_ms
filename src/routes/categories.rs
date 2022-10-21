@@ -1,14 +1,16 @@
 use mongodb::{bson::doc, Collection, Database};
 use rocket::{
     http::Status,
-    serde::json::{serde_json::json, Json},
+    response::status,
+    serde::json::{
+        serde_json::{self, json},
+        Json,
+    },
     State,
 };
 
 use crate::{
-    database::Repository,
-    helpers::{response::ApiResponse, serializer::object_id_serializer},
-    models::category::Category,
+    database::Repository, helpers::serializer::object_id_serializer, models::category::Category,
 };
 
 fn get_category_repo(db: &State<Database>) -> Repository<Category> {
@@ -17,42 +19,40 @@ fn get_category_repo(db: &State<Database>) -> Repository<Category> {
 }
 
 #[post("/", data = "<new_category>")]
-pub async fn create_category(db: &State<Database>, new_category: Json<Category>) -> ApiResponse {
+pub async fn create_category(
+    db: &State<Database>,
+    new_category: Json<Category>,
+) -> status::Custom<serde_json::Value> {
     let result = get_category_repo(db)
         .create(new_category.into_inner())
         .await;
 
     match result {
-        Ok(category) => ApiResponse {
-            status: Status::Created,
-            json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
-        },
-        Err(e) => ApiResponse {
-            status: Status::InternalServerError,
-            json: Some(json!({ "error": e.to_string() })),
-        },
+        Ok(category) => status::Custom(
+            Status::Created,
+            json!({ "data": object_id_serializer(&json!(category)) }),
+        ),
+        Err(e) => status::Custom(
+            Status::InternalServerError,
+            json!({ "error": e.to_string() }),
+        ),
     }
 }
 
 #[get("/<id>")]
-pub async fn get_category(db: &State<Database>, id: String) -> ApiResponse {
+pub async fn get_category(db: &State<Database>, id: String) -> status::Custom<serde_json::Value> {
     let result = get_category_repo(db).get(&id).await;
 
     match result {
-        Ok(result) => match result {
-            Some(category) => ApiResponse {
-                status: Status::Ok,
-                json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
-            },
-            None => ApiResponse {
-                status: Status::NotFound,
-                json: Some(json!({ "error": "Category not found" })),
-            },
-        },
-        Err(e) => ApiResponse {
-            status: Status::InternalServerError,
-            json: Some(json!({ "error": e.to_string() })),
-        },
+        Ok(Some(category)) => status::Custom(
+            Status::Ok,
+            json!({ "data": object_id_serializer(&json!(category)) }),
+        ),
+        Ok(None) => status::Custom(Status::NotFound, json!({ "error": "Category not found" })),
+        Err(e) => status::Custom(
+            Status::InternalServerError,
+            json!({ "error": e.to_string() }),
+        ),
     }
 }
 
@@ -61,7 +61,7 @@ pub async fn get_categories(
     db: &State<Database>,
     subject_code: Option<String>,
     group_id: Option<String>,
-) -> ApiResponse {
+) -> status::Custom<serde_json::Value> {
     let mut filter = doc! {};
     if let Some(subject_code) = subject_code {
         filter.insert("subject_code", subject_code);
@@ -73,14 +73,14 @@ pub async fn get_categories(
     let result = get_category_repo(db).get_all(Some(filter)).await;
 
     match result {
-        Ok(categories) => ApiResponse {
-            status: Status::Ok,
-            json: Some(json!({ "data": object_id_serializer(&json!(categories)) })),
-        },
-        Err(e) => ApiResponse {
-            status: Status::InternalServerError,
-            json: Some(json!({ "error": e.to_string() })),
-        },
+        Ok(categories) => status::Custom(
+            Status::Ok,
+            json!({ "data": object_id_serializer(&json!(categories)) }),
+        ),
+        Err(e) => status::Custom(
+            Status::InternalServerError,
+            json!({ "error": e.to_string() }),
+        ),
     }
 }
 
@@ -89,48 +89,41 @@ pub async fn update_category(
     db: &State<Database>,
     id: String,
     updated_category: Json<Category>,
-) -> ApiResponse {
+) -> status::Custom<serde_json::Value> {
     let result = get_category_repo(db)
         .update(&id, updated_category.into_inner())
         .await;
 
     match result {
-        Ok(result) => match result {
-            Some(category) => ApiResponse {
-                status: Status::Ok,
-                json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
-            },
-            None => ApiResponse {
-                status: Status::NotFound,
-                json: Some(json!({ "error": "Category not found" })),
-            },
-        },
-        Err(e) => ApiResponse {
-            status: Status::InternalServerError,
-            json: Some(json!({ "error": e.to_string() })),
-        },
+        Ok(Some(category)) => status::Custom(
+            Status::Ok,
+            json!({ "data": object_id_serializer(&json!(category)) }),
+        ),
+        Ok(None) => status::Custom(Status::NotFound, json!({ "error": "Category not found" })),
+        Err(e) => status::Custom(
+            Status::InternalServerError,
+            json!({ "error": e.to_string() }),
+        ),
     }
 }
 
 #[delete("/<id>")]
-pub async fn delete_category(db: &State<Database>, id: String) -> ApiResponse {
+pub async fn delete_category(
+    db: &State<Database>,
+    id: String,
+) -> status::Custom<serde_json::Value> {
     let result = get_category_repo(db).delete(&id).await;
 
     match result {
-        Ok(result) => match result {
-            Some(category) => ApiResponse {
-                status: Status::Gone,
-                json: Some(json!({ "data": object_id_serializer(&json!(category)) })),
-            },
-            None => ApiResponse {
-                status: Status::NotFound,
-                json: Some(json!({ "error": "Category not found" })),
-            },
-        },
-        Err(e) => ApiResponse {
-            status: Status::InternalServerError,
-            json: Some(json!({ "error": e.to_string() })),
-        },
+        Ok(Some(category)) => status::Custom(
+            Status::Gone,
+            json!({ "data": object_id_serializer(&json!(category)) }),
+        ),
+        Ok(None) => status::Custom(Status::NotFound, json!({ "error": "Category not found" })),
+        Err(e) => status::Custom(
+            Status::InternalServerError,
+            json!({ "error": e.to_string() }),
+        ),
     }
 }
 
