@@ -22,13 +22,7 @@ pub fn object_id_serializer(json: &serde_json::Value) -> serde_json::Value {
             serde_json::Value::Object(new_obj)
         }
         serde_json::Value::Array(arr) => {
-            let mut new_arr = Vec::new();
-
-            for item in arr {
-                new_arr.push(object_id_serializer(item));
-            }
-
-            serde_json::Value::Array(new_arr)
+            arr.iter().map(|item| object_id_serializer(item)).collect()
         }
         _ => json.clone(),
     }
