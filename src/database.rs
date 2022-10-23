@@ -1,5 +1,5 @@
 use mongodb::{
-    bson::{doc, oid::ObjectId},
+    bson::{doc, oid::ObjectId, Document},
     error::Error,
     Client, Collection, Database,
 };
@@ -7,20 +7,16 @@ use rocket::futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::env;
 
-pub async fn get_db() -> Database {
+pub async fn get_db() -> Result<Database, Error> {
     let uri = env::var("MONGO_URI").expect("MONGO_URI must be set");
-    let client = Client::with_uri_str(&uri)
-        .await
-        .expect("Failed to initialize client.");
+    let client = Client::with_uri_str(&uri).await?;
 
-    let db_name = env::var("MONGO_DB").expect("MONGO_DB must be set");
+    let db_name = env::var("MONGO_DB").unwrap_or_else(|_| "gradings".to_string());
     let db = client.database(&db_name);
 
-    db.run_command(doc! {"ping": 1}, None)
-        .await
-        .expect("Failed to ping database.");
+    db.run_command(doc! {"ping": 1}, None).await?;
 
-    db
+    Ok(db)
 }
 
 pub struct Repository<T>
@@ -42,78 +38,55 @@ where
         let oid = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": oid};
 
-        let result = self.collection.find_one(filter, None).await;
+        let result = self.collection.find_one(filter, None).await?;
 
-        match result {
-            Ok(result) => Ok(result),
-            Err(e) => Err(e),
-        }
+        Ok(result)
     }
 
     pub async fn create(&self, item: T) -> Result<T, Error> {
-        let result = self.collection.insert_one(item, None).await;
+        let result = self.collection.insert_one(item, None).await?;
 
-        match result {
-            Ok(result) => {
-                let oid = result.inserted_id.as_object_id().unwrap();
-                let filter = doc! {"_id": oid};
-                let result = self.collection.find_one(filter, None).await;
+        let oid = result.inserted_id.as_object_id().unwrap();
+        let filter = doc! {"_id": oid};
+        let result = self.collection.find_one(filter, None).await?;
 
-                match result {
-                    Ok(result) => Ok(result.unwrap()),
-                    Err(e) => Err(e),
-                }
-            }
-            Err(e) => Err(e),
-        }
+        Ok(result.unwrap())
     }
 
-    pub async fn get_all(&self) -> Result<Vec<T>, Error> {
-        let cursor = self.collection.find(None, None).await;
+    pub async fn get_all(&self, filter: Option<Document>) -> Result<Vec<T>, Error> {
+        let mut cursor = self.collection.find(filter, None).await?;
 
-        match cursor {
-            Ok(cursor) => {
-                let items = cursor.map(|item| item.unwrap()).collect::<Vec<T>>().await;
+        let mut items = Vec::new();
 
-                Ok(items)
-            }
-            Err(e) => Err(e),
+        while let Some(item) = cursor.next().await {
+            items.push(item?);
         }
+
+        Ok(items)
     }
 
     pub async fn update(&self, id: &str, item: T) -> Result<Option<T>, Error> {
         let oid = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": oid};
 
-        let result = self.collection.replace_one(filter, item, None).await;
+        let result = self.collection.replace_one(filter, item, None).await?;
 
-        match result {
-            Ok(result) => {
-                if result.modified_count == 0 {
-                    return Ok(None);
-                }
-
-                let filter = doc! {"_id": oid};
-                let result = self.collection.find_one(filter, None).await;
-
-                match result {
-                    Ok(result) => Ok(result),
-                    Err(e) => Err(e),
-                }
-            }
-            Err(e) => Err(e),
+        if result.modified_count == 0 {
+            return Ok(None);
         }
+
+        let filter = doc! {"_id": oid};
+        let result = self.collection.find_one(filter, None).await?;
+
+        Ok(result)
     }
 
     pub async fn delete(&self, id: &str) -> Result<Option<T>, Error> {
         let oid = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": oid};
 
-        let result = self.collection.find_one_and_delete(filter, None).await;
+        let result = self.collection.find_one_and_delete(filter, None).await?;
 
-        match result {
-            Ok(result) => Ok(result),
-            Err(e) => Err(e),
-        }
+        Ok(result)
     }
 }

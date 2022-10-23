@@ -50,7 +50,7 @@ dependencies = [
 
 [[package]]
 name = "aims_grading_ms"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "mongodb",
  "rocket",

@@ -2,7 +2,7 @@ version: "3.8"
 name: aims
 
 services:
-  grading_db:
+  grading-db:
     image: mongo:latest
     container_name: grading_db
     environment:
@@ -11,21 +11,23 @@ services:
     ports:
       - "27018:27017"
     volumes:
-      - grading:/data/db
+      - grading_db_data:/data/db
+      - grading_db_config:/data/configdb
 
-  grading_ms:
+  grading-ms:
     build: .
     image: aims_grading_ms
     container_name: grading_ms
     depends_on:
-      - grading_db
+      - grading-db
     links:
-      - grading_db
+      - grading-db
     environment:
-      - MONGO_URI=mongodb://aims:aims@grading_db:27017
+      - MONGO_URI=mongodb://aims:aims@grading-db:27017
       - MONGO_DB=aims
     ports:
       - "8000:8000"
 
 volumes:
-  grading:
+  grading_db_data:
+  grading_db_config:

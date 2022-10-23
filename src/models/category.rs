@@ -8,5 +8,5 @@ pub struct Category {
     pub name: String,
     pub weight: f64,
     pub group_id: String,
-    pub subject_id: String,
+    pub subject_code: String,
 }

@@ -1,12 +1,17 @@
-FROM rust AS builder
+FROM lukemathwalker/cargo-chef:latest-rust-1.59.0 AS chef
 WORKDIR /app
 
-COPY ./Cargo.toml ./Cargo.toml
-COPY dummy.rs .
-RUN sed -i 's#src/main.rs#dummy.rs#' ./Cargo.toml
-RUN cargo build --release
-RUN sed -i 's#dummy.rs#src/main.rs#' ./Cargo.toml
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY ./Cargo.toml ./Cargo.toml
+COPY ./Cargo.lock ./Cargo.lock
 COPY ./src ./src
 RUN cargo build --release
 
@@ -19,4 +24,3 @@ ENV ROCKET_PORT=8000
 
 EXPOSE 8000
 CMD ["./aims_grading_ms"]
-
