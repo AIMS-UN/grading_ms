@@ -1,4 +1,4 @@
-use mongodb::{bson::doc, Collection, Database};
+use mongodb::bson::doc;
 use rocket::{
     http::Status,
     response::status,
@@ -13,19 +13,12 @@ use crate::{
     database::Repository, helpers::serializer::object_id_serializer, models::category::Category,
 };
 
-fn get_category_repo(db: &State<Database>) -> Repository<Category> {
-    let collection: Collection<Category> = db.collection("categories");
-    Repository::init(collection)
-}
-
 #[post("/", data = "<new_category>")]
 pub async fn create_category(
-    db: &State<Database>,
+    category_repo: &State<Repository<Category>>,
     new_category: Json<Category>,
 ) -> status::Custom<serde_json::Value> {
-    let result = get_category_repo(db)
-        .create(new_category.into_inner())
-        .await;
+    let result = category_repo.create(new_category.into_inner()).await;
 
     match result {
         Ok(category) => status::Custom(
@@ -40,8 +33,11 @@ pub async fn create_category(
 }
 
 #[get("/<id>")]
-pub async fn get_category(db: &State<Database>, id: String) -> status::Custom<serde_json::Value> {
-    let result = get_category_repo(db).get(&id).await;
+pub async fn get_category(
+    category_repo: &State<Repository<Category>>,
+    id: String,
+) -> status::Custom<serde_json::Value> {
+    let result = category_repo.get(&id).await;
 
     match result {
         Ok(Some(category)) => status::Custom(
@@ -58,7 +54,7 @@ pub async fn get_category(db: &State<Database>, id: String) -> status::Custom<se
 
 #[get("/?<subject_code>&<group_id>")]
 pub async fn get_categories(
-    db: &State<Database>,
+    category_repo: &State<Repository<Category>>,
     subject_code: Option<String>,
     group_id: Option<String>,
 ) -> status::Custom<serde_json::Value> {
@@ -70,7 +66,7 @@ pub async fn get_categories(
         filter.insert("group_id", group_id);
     }
 
-    let result = get_category_repo(db).get_all(Some(filter)).await;
+    let result = category_repo.get_all(Some(filter)).await;
 
     match result {
         Ok(categories) => status::Custom(
@@ -86,11 +82,11 @@ pub async fn get_categories(
 
 #[put("/<id>", data = "<updated_category>")]
 pub async fn update_category(
-    db: &State<Database>,
+    category_repo: &State<Repository<Category>>,
     id: String,
     updated_category: Json<Category>,
 ) -> status::Custom<serde_json::Value> {
-    let result = get_category_repo(db)
+    let result = category_repo
         .update(&id, updated_category.into_inner())
         .await;
 
@@ -109,10 +105,10 @@ pub async fn update_category(
 
 #[delete("/<id>")]
 pub async fn delete_category(
-    db: &State<Database>,
+    category_repo: &State<Repository<Category>>,
     id: String,
 ) -> status::Custom<serde_json::Value> {
-    let result = get_category_repo(db).delete(&id).await;
+    let result = category_repo.delete(&id).await;
 
     match result {
         Ok(Some(category)) => status::Custom(
