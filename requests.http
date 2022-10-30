@@ -1,5 +1,6 @@
 @base_url=http://localhost:8000/api/v1
 
+@userId=fd6644f8-f987-4da4-93c3-8b25e3a37f63
 
 ### --------------------- CATEGORIES --------------------- ###
 
@@ -68,7 +69,7 @@ Content-Type: application/json
 
 {
     "category_id": "{{category_id}}",
-    "student_id": "{{$guid}}",
+    "student_id": "{{userId}}",
     "score": {{$randomInt 0 5}}
 }
 

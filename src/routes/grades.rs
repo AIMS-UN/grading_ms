@@ -1,4 +1,4 @@
-use mongodb::{bson::doc, Collection, Database};
+use mongodb::bson::doc;
 use rocket::{
     http::Status,
     response::status,
@@ -15,26 +15,17 @@ use crate::{
     models::{category::Category, grade::Grade},
 };
 
-fn get_grade_repo(db: &State<Database>) -> Repository<Grade> {
-    let collection: Collection<Grade> = db.collection("grades");
-    Repository::init(collection)
-}
-
-fn get_category_repo(db: &State<Database>) -> Repository<Category> {
-    let collection: Collection<Category> = db.collection("categories");
-    Repository::init(collection)
-}
-
 #[post("/", data = "<new_grade>")]
 pub async fn create_grade(
-    db: &State<Database>,
+    grade_repo: &State<Repository<Grade>>,
+    category_repo: &State<Repository<Category>>,
     new_grade: Json<Grade>,
 ) -> status::Custom<serde_json::Value> {
-    let result = get_category_repo(db).get(&new_grade.category_id).await;
+    let result = category_repo.get(&new_grade.category_id).await;
 
     match result {
         Ok(Some(_)) => {
-            let result = get_grade_repo(db).create(new_grade.into_inner()).await;
+            let result = grade_repo.create(new_grade.into_inner()).await;
 
             match result {
                 Ok(grade) => status::Custom(
@@ -56,8 +47,11 @@ pub async fn create_grade(
 }
 
 #[get("/<id>")]
-pub async fn get_grade(db: &State<Database>, id: String) -> status::Custom<serde_json::Value> {
-    let result = get_grade_repo(db).get(&id).await;
+pub async fn get_grade(
+    grade_repo: &State<Repository<Grade>>,
+    id: String,
+) -> status::Custom<serde_json::Value> {
+    let result = grade_repo.get(&id).await;
 
     match result {
         Ok(Some(grade)) => status::Custom(
@@ -74,7 +68,7 @@ pub async fn get_grade(db: &State<Database>, id: String) -> status::Custom<serde
 
 #[get("/?<student_id>&<category_id>")]
 pub async fn get_grades(
-    db: &State<Database>,
+    grade_repo: &State<Repository<Grade>>,
     student_id: Option<String>,
     category_id: Option<String>,
 ) -> status::Custom<serde_json::Value> {
@@ -86,7 +80,7 @@ pub async fn get_grades(
         filter.insert("category_id", category_id);
     }
 
-    let result = get_grade_repo(db).get_all(Some(filter)).await;
+    let result = grade_repo.get_all(Some(filter)).await;
 
     match result {
         Ok(grades) => status::Custom(
@@ -102,13 +96,11 @@ pub async fn get_grades(
 
 #[put("/<id>", data = "<updated_grade>")]
 pub async fn update_grade(
-    db: &State<Database>,
+    grade_repo: &State<Repository<Grade>>,
     id: String,
     updated_grade: Json<Grade>,
 ) -> status::Custom<serde_json::Value> {
-    let result = get_grade_repo(db)
-        .update(&id, updated_grade.into_inner())
-        .await;
+    let result = grade_repo.update(&id, updated_grade.into_inner()).await;
 
     match result {
         Ok(Some(grade)) => status::Custom(
@@ -124,8 +116,11 @@ pub async fn update_grade(
 }
 
 #[delete("/<id>")]
-pub async fn delete_grade(db: &State<Database>, id: String) -> status::Custom<serde_json::Value> {
-    let result = get_grade_repo(db).delete(&id).await;
+pub async fn delete_grade(
+    grade_repo: &State<Repository<Grade>>,
+    id: String,
+) -> status::Custom<serde_json::Value> {
+    let result = grade_repo.delete(&id).await;
 
     match result {
         Ok(Some(grade)) => status::Custom(
